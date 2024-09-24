@@ -1,0 +1,79 @@
+---
+title: "stat430 a4 q1"
+output: pdf_document
+date: "2023-11-23"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+xA = rep( c(-1,1), times=16)
+xB = rep( c(-1,1), each=2, times=8)
+xC = rep( c(-1,1), each=4, times=4)
+xD = rep( c(-1,1), each=8, times=2)
+xE = rep( c(-1,1), each=16)
+```
+
+
+### (a)
+```{r}
+xF <- xB * xC * xD * xE
+xG <- xA * xC * xD * xE
+xH <- xA * xB * xD * xE
+xI <- xA * xB * xC * xE
+
+# 32(row) * 9(col) matrix
+mat <- cbind(xA,xB,xC,xD,xE,xF,xG,xH,xI)
+mat
+```
+
+
+### (b)
+```{r}
+resolution = 4
+min_order = resolution - 1
+# lower bound
+min_order
+
+```
+
+
+### (c)
+```{r}
+p <- 4
+# number of effects confounded
+2^p - 1
+```
+
+### (d)
+```{r}
+# check
+HI <- xH * xI
+CD <- xC * xD
+all.equal(HI, CD)
+```
+
+
+### (e)
+```{r}
+# check
+AF <- xA * xF
+BG <- xB * xG
+CH <- xC * xH
+DI <- xD * xI
+all.equal(AF,DI)
+all.equal(AF,CH)
+all.equal(AF,DI)
+```
+
+### (f)
+```{r}
+# check
+AB <- xA * xB
+FG <- xF * xG
+all.equal(AB,FG)
+```
+

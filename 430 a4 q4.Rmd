@@ -1,0 +1,111 @@
+---
+title: "stat430 a4 q4"
+author: "Yiming Shen 20891774"
+date: "26/11/2023"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+y = c(58,59,47,46,41,62,51,51,51,49,50,50,49,48)
+x1 = c(1,1,-1,-1,-sqrt(3),sqrt(3),0,0,0,0,0,0,0,0)
+x2 = c(1,-1,1,-1,0,0,-sqrt(3),sqrt(3),0,0,0,0,0,0)
+x3 = c(1,-1,-1,1,0,0,0,0,-sqrt(3),sqrt(3),0,0,0,0)
+datq4 = data.frame(y,x1,x2,x3)
+datq4
+
+```
+
+
+### (a)
+```{r}
+# dot product of x1 and x2
+sum(x1 * x2)==0
+
+# dot product of x1 and x3
+sum(x1 * x3)==0
+
+# dot product of x2 and x3
+sum(x2 * x3)==0
+```
+
+Comments: column x1 and x2; column x2 and x3 are orthogonal.
+But column x1 and x3 are not not orthogonal.
+
+
+### (b)
+```{r}
+plus_a <- sqrt(3)
+minus_a <- -sqrt(3)
+
+# temperature
+UH <- 250
+UL <- 200
+plus_U <- plus_a * (UH - UL)/2 + (UH + UL)/2
+minus_U <- minus_a * (UH - UL)/2 + (UH + UL)/2
+center_U <- (UH + UL)/2
+datq4$temperature[datq4$x1==-1] <- UL
+datq4$temperature[datq4$x1==1] <- UH
+datq4$temperature[datq4$x1==minus_a] <- minus_U
+datq4$temperature[datq4$x1==plus_a] <- plus_U
+datq4$temperature[datq4$x1==0] <- center_U
+
+# pressure
+UH <- 600
+UL <- 400
+plus_U <- plus_a * (UH - UL)/2 + (UH + UL)/2
+minus_U <- minus_a * (UH - UL)/2 + (UH + UL)/2
+center_U <- (UH + UL)/2
+datq4$pressure[datq4$x2==-1] <- UL
+datq4$pressure[datq4$x2==1] <- UH
+datq4$pressure[datq4$x2==minus_a] <- minus_U
+datq4$pressure[datq4$x2==plus_a] <- plus_U
+datq4$pressure[datq4$x2==0] <- center_U
+
+# concentration
+UH <- 60
+UL <- 50
+plus_U <- plus_a * (UH - UL)/2 + (UH + UL)/2
+minus_U <- minus_a * (UH - UL)/2 + (UH + UL)/2
+center_U <- (UH + UL)/2
+datq4$concentration[datq4$x3==-1] <- UL
+datq4$concentration[datq4$x3==1] <- UH
+datq4$concentration[datq4$x3==minus_a] <- minus_U
+datq4$concentration[datq4$x3==plus_a] <- plus_U
+datq4$concentration[datq4$x3==0] <- center_U
+
+# final matrix
+print(datq4)
+
+```
+
+
+### (c)
+```{r}
+# fit a second order linear model
+mod <- lm(y ~ x1 * x2 * x3 + I(x1^2) + I(x2^2) + I(x3^2), data = datq4)
+summary(mod)
+```
+
+```{r}
+# when temp change from U (natural unit) to U+1, the change of x (coded unit) is:
+delta_x <- (1-225)/25 - (-225/25)
+delta_x
+# which means from x (coded unit) to x+0.04
+
+# the change of E[Y] will be delta_x * (estimate of beta1)
+delta_x * summary(mod)$coefficients[2]
+
+```
+
+Comments: when the temperature increases 1C, the expected yield will increase
+0.2424871.
+
+
+
+
+

@@ -1,0 +1,101 @@
+---
+title: "stat430 a4 q3"
+author: "Yiming Shen 20891774"
+date: "25/11/2023"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+x1 = rep(c(-1,1), times=8)
+x2 = rep(c(-1,1), times=4, each=2)
+x3 = rep(c(-1,1), times=2, each=4)
+x4 = rep(c(-1,1), each=8)
+x5 = x1 * x2 * x3
+x6 = x2 * x3 * x4
+x7 = x1 * x3 * x4
+y = c(52,74,84,97,117,52,128,106,146,87,85,100,120,171,132,100)
+datq3 = data.frame(x1,x2,x3,x4,x5,x6,x7,y)
+datq3
+```
+### (a)
+```{r}
+mod <- lm(y ~ x1 * x2 * x3 * x4, data = datq3)
+summary(mod)
+
+effects <- mod$coef * 2
+effects = effects[-1]
+effects
+
+xpos <- qqnorm(effects)$x
+ypos <- qqnorm(effects,cex=0.1)$y
+text(x=xpos,y=ypos,labels=names(effects))
+qqline(effects)
+
+# get the PSE
+s0 <- 1.5 * median( abs(effects) )
+noise <- which(abs(effects) < 2.5*s0)
+pse <- 1.5 * median( abs(effects)[noise])
+pse
+
+# get the merr
+d = length(effects) / 3
+merr <- -qt(0.025,df=d) * pse
+merr
+
+# significant factors
+which( abs(effects) > merr)
+
+```
+Comments: Based on the Lenth's method, we found that the main effects of factors
+x3, x4, x7 (assumed that three-factor interactions are negligible) and the 
+interaction between x2 & x4; x2 & x7 (x1:x2:x3:x4 driven by aliased interaction 
+involving x7) are significant. Due to the principle of heredity, 
+I would like to include that the main effect of x2 is significant as well.
+
+
+### (b)
+Based on (a), we found that main effects of x3,x4,x7,x2:x4,x2:x7 (and x2) are 
+significant, so we can build a model using only these significant effects as follows.
+
+```{r}
+mod2 <- lm(y ~ x3 + x4 + x7 + x2*x4 + x2*x7)
+summary(mod2)
+```
+
+Based on mod and mod2 above, we believe that x1,x5,x6 among the 2^(7-3) 
+fractional factorial design can be reasonably treated as if it weren't factors
+at all. (We still think x2 is significant due to the significance of x2:x4 and x2:x7)
+We can project our 2^(7-3) fractional factorial design onto a projected 2^4 full 
+factorial design using x2,x3,x4,x7 as our factors.
+
+so we can design a full factorial design experiment as follows:
+1. there are 4 factors, so it is a 2^4 full design.
+2. there are 2^10 sample units, and it is a balanced design, so each condition 
+   will has 64 replicates.
+
+```{r}
+# The full model can be designed in R:
+# mod3 <- lm(y ~ x2 * x3 * x4 * x7, data = datq3)
+# summary(mod3)
+```
+
+### (c)
+After factoring phase, we can use the method of steepest ascent/descent and
+response surface design to locate optimal settings of the factors we identified.
+
+For the N = 1000 samples, we need ensure every condition has adequate replicates.
+Then we code factors and response surface experimentation can be used to
+reach the goal of response optimization: a second order model can be fitted and 
+the optimum can be discovered via finding the stationary point.
+
+
+
+
+
+
+
+

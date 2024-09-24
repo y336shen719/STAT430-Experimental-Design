@@ -1,0 +1,115 @@
+---
+title: "stat430 a4 q2"
+output: pdf_document
+date: "2023-11-23"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+x1 = rep( c(-1,1), times=8)
+x2 = rep( c(-1,1), times=4, each=2)
+x3 = rep( c(-1,1), times=2, each=4)
+y = c(5,15,19,11,4,26,-3,21,5,15,21,13,12,17,2,17)
+datq2 = data.frame(y,x1,x2,x3)
+datq2
+
+```
+
+
+
+### (a)
+```{r}
+# main effect of factor A
+y_A_high <- mean(datq2$y[datq2$x1==1])
+y_A_low <- mean(datq2$y[datq2$x1==-1])
+
+ME_A <- y_A_high - y_A_low
+ME_A
+
+```
+
+
+
+### (b)
+```{r}
+# Interaction Effect between A and B
+x12 <- x1 * x2
+data <- data.frame(y,x12)
+
+y_AB_high <- mean(data$y[data$x12==1])
+y_AB_low <- mean(data$y[data$x12==-1])
+
+IE_AB <- y_AB_high - y_AB_low
+IE_AB
+
+```
+
+
+### (c)
+```{r}
+# Interaction Effect between A,B,C
+x123 <- x12 * x3
+data <- data.frame(y,x123)
+
+y_ABC_high <- mean(data$y[data$x123==1])
+y_ABC_low <- mean(data$y[data$x123==-1])
+
+IE_ABC <- y_ABC_high - y_ABC_low
+IE_ABC
+
+```
+
+
+### (d)
+```{r}
+# simplest model
+mod1 <- lm(y ~ x1 + x2 + x3, data = datq2)
+summary(mod1)
+
+
+beta1 <- summary(mod1)$coefficients[2]
+beta1
+
+# check work from (a)
+all.equal(2 * beta1, ME_A)
+```
+
+Comments: We found that 2 times estimate of beta1 equals to the
+estimate of main effect A, we verified our work.
+
+
+### (e)
+```{r}
+# full model
+mod2 <- lm(y ~ x1 + x2 + x3 + x1:x2 + x1:x2:x3)
+summary(mod2)
+
+# check work from (b)
+beta4 <- summary(mod2)$coefficients[5]
+beta4
+
+all.equal(2 * beta4, IE_AB)
+
+# check work from (c)
+beta5 <- summary(mod2)$coefficients[6]
+beta5
+
+all.equal(2 * beta5, IE_ABC)
+
+```
+
+Comments: We found that 2 times estimates of beta4 and beta5 equals to the estimates of Interaction Effect between A&B, A&B&C separately, we verified our work.
+
+
+### (f)
+```{r}
+X <- cbind(x1,x2,x3) # design matrix
+XTX <- t(X) %*% X
+XTX_inverse <- solve(XTX)
+XTX_inverse
+```
+Comments: Obviously, the matrix is disgonal.
+

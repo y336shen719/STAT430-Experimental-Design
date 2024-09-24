@@ -1,0 +1,152 @@
+---
+title: "STAT430 Assignment02"
+author: "Yiming Shen 20891774"
+date: "12/10/2023"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question01
+```{R}
+# we conduct original observed data's test stat firstly
+real_data <- matrix(c(12, 34, 30, 53), nrow=2, ncol=2)
+rowtot <- apply(real_data, 1, sum)
+coltot <- apply(real_data, 2, sum)
+grandtot <- rowtot[1] + rowtot[2]
+prob <- rowtot/grandtot
+expected_data <- matrix(c(coltot[1]*prob[1], coltot[1]*prob[2],
+                          coltot[2]*prob[1], coltot[2]*prob[2]),
+                        nrow=2, ncol=2)
+real_t <- (real_data[1,1]-expected_data[1,1])^2/expected_data[1,1] +
+          (real_data[1,2]-expected_data[1,2])^2/expected_data[1,2] +
+          (real_data[2,1]-expected_data[2,1])^2/expected_data[2,1] +
+          (real_data[2,2]-expected_data[2,2])^2/expected_data[2,2]
+real_p_value <- 1-pchisq(real_t,df=1)
+
+
+# now we start to conduct n=10000 randomization test
+rnd.t <- rep(NA,10000)
+for (run in 1:10000)
+{
+N = 129
+Exp = matrix(c(14.98, 31.02, 27.02, 55.98), nrow=2, ncol=2)
+x1 = sample(1:4, size=N, prob=c(Exp)/sum(Exp), replace=TRUE)
+x2 = as.numeric(table(x1))
+rnd.table = matrix(x2, nrow=2, ncol=2)
+
+rowtot <- apply(rnd.table, 1, sum)
+coltot <- apply(rnd.table, 2, sum)
+grandtot <- rowtot[1] + rowtot[2]
+prob <- rowtot/grandtot
+expected_table <- matrix(c(coltot[1]*prob[1], coltot[1]*prob[2],
+                          coltot[2]*prob[1], coltot[2]*prob[2]),
+                        nrow=2, ncol=2)
+t <- (rnd.table[1,1]-expected_data[1,1])^2/expected_data[1,1] +
+     (rnd.table[1,2]-expected_data[1,2])^2/expected_data[1,2] +
+     (rnd.table[2,1]-expected_data[2,1])^2/expected_data[2,1] +
+     (rnd.table[2,2]-expected_data[2,2])^2/expected_data[2,2]
+
+rnd.t[run] <- t
+}
+
+random.beat.real <- which(rnd.t > real_t)
+
+p <- length(random.beat.real)/10000
+p
+```
+Therefore, the estimated p-value based on 10000 randomization test is around 0.7
+so we do not reject the null hypothesis of independence.
+
+\newpage
+## Question03
+
+### (a)
+```{R}
+metal <- read.csv("metaltest.csv")
+
+rbar_i <- as.vector(by(metal$str_rank, metal$type, mean))
+
+N <- nrow(metal)
+
+n_i <- c(length(metal$str_rank[metal$type==1]),
+         length(metal$str_rank[metal$type==2]),
+         length(metal$str_rank[metal$type==3]),
+         length(metal$str_rank[metal$type==4]))
+
+ranks <- metal$str_rank
+
+rbar <- mean(metal$str_rank)
+
+# carry out Krusklal-Wallis test for median
+
+H <- (N-1)* sum(n_i * (rbar_i - rbar)^2 ) / sum( (ranks-rbar)^2 )
+H
+
+p_value <- 1 - pchisq(H, df=4-1)
+p_value
+```
+Therefore the p-value is very small, we have the evidence that there is 
+difference in the median strength between the four types of metal.
+
+
+### (b)
+```{R}
+# M = 4C2 = 6
+M <- 6
+# Test between type 1 and 2
+wilcox.test(metal$str[metal$type==1], metal$str[metal$type==2])
+# p-value = 0.6815
+adj_p_1 <- 0.6815 * M
+# notice that adj_p_1 > 1, so adj_p_1 = 1
+adj_p_1 <- 1
+adj_p_1
+
+# Test between type 1 and 3
+wilcox.test(metal$str[metal$type==1], metal$str[metal$type==3])
+# p-value = 0.004575
+adj_p_2 <- 0.004575 * M
+adj_p_2
+
+# Test between type 1 and 4
+wilcox.test(metal$str[metal$type==1], metal$str[metal$type==4])
+# p-value = 0.000212
+adj_p_3 <- 0.000212 * M
+adj_p_3
+
+# Test between type 2 and 3
+wilcox.test(metal$str[metal$type==2], metal$str[metal$type==3])
+# p-value = 0.004325
+adj_p_4 <- 0.004325 * M
+adj_p_4
+
+# Test between type 2 and 4
+wilcox.test(metal$str[metal$type==2], metal$str[metal$type==4])
+# p-value = 1.388e-05
+adj_p_5 <- 1.388e-05 * M
+adj_p_5
+
+# Test between type 3 and 4
+wilcox.test(metal$str[metal$type==3], metal$str[metal$type==4])
+# p-value = 0.1992
+adj_p_6 <- 0.1992 * M
+# notice that adj_p_6 > 1, so adj_p_6 = 1
+adj_p_6 <- 1
+adj_p_1
+```
+In summary:
+1&2: adj_p_1 = 1
+1&3: adj_p_2 = 0.02745
+1&4: adj_p_3 = 0.001272
+2&3: adj_p_4 = 0.02595
+2&4: adj_p_5 = 8.328e-05
+3&4: adj_p_6 = 1
+
+### (c)
+```{R}
+# confirm by function
+pairwise.wilcox.test(metal$str, metal$type, p.adjust.method = "bonf")
+```
+Therefore, all adj_p_values are matched with (b).
